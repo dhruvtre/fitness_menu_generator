@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Recipe Generator</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .ingredient-input { margin-bottom: 10px; }
+        #recipe-output { margin-top: 20px; border: 1px solid #ccc; padding: 10px; min-height: 100px; }
+        .button { margin-right: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Recipe Generator</h1>
+    <h3>Enter ingredients</h3>
+    
+    <!-- Ingredients Form -->
+    <form id="ingredients-form">
+        <div class="ingredient-input"><input type="text" name="ingredient1" placeholder="Ingredient 1"></div>
+        <div class="ingredient-input"><input type="text" name="ingredient2" placeholder="Ingredient 2"></div>
+        <div class="ingredient-input"><input type="text" name="ingredient3" placeholder="Ingredient 3"></div>
+        <div class="ingredient-input"><input type="text" name="ingredient4" placeholder="Ingredient 4"></div>
+        <div class="ingredient-input"><input type="text" name="ingredient5" placeholder="Ingredient 5"></div>
+        <button class="button" id = 'generate-recipe-button' type="submit">Generate Recipe</button>
+    </form>
+    
+
+    <!-- Recipe Output Box -->
+    <div id="recipe-output">Your recipe will appear here...</div>
+
+    <!-- Action Buttons -->
+    <button class="button" id = 'regenerate-recipe-button' onclick="handleRecipeGeneration()">Regenerate Recipe</button>
+    <button class="button" id='save-recipe-button' onclick="saveRecipe()">Save Recipe</button>
+    <button class="button" id='download-menu-button' onclick="window.location.href = '/download_menu/'">Download Menu</button>
+
+
+<script> 
+function handleRecipeGeneration() {
+    const recipeOutputDiv = document.getElementById('recipe-output');
+    recipeOutputDiv.textContent = 'Loading recipe...'; // Show loading message
+    const formData = new FormData(document.getElementById('ingredients-form')); // Gather form data
+    
+    fetch('/generate_recipe/', { // Send the form data to your FastAPI endpoint
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json()) // Parse the JSON response
+    .then(data => {
+        recipeOutputDiv.textContent = data.recipe; // Update the UI with the recipe
+        console.log(data.message)
+    })
+    .catch(error => {
+        console.error('There was an generating the recipe', error);
+        recipeOutputDiv.textContent = 'Failed to load recipe. Please try again.';
+    });
+}
+
+// Attach the function to both buttons
+document.getElementById('ingredients-form').addEventListener('submit', function(e) {
+    e.preventDefault(); // Prevent the default form submission
+    handleRecipeGeneration();
+});
+
+function saveRecipe() {
+    const formData = new FormData();
+    formData.append('recipe', document.getElementById('recipe-output').textContent);
+
+    fetch('/save_recipe/', {
+        method: 'POST',
+        body: formData  // Send as form data
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log(data.message);
+    })
+    .catch(error => {
+        console.error('Error saving recipe:', error);
+    });
+}
+</script>
+</body>
+</html>
